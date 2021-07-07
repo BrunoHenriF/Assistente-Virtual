@@ -4,7 +4,9 @@ from playsound import playsound
 from requests import get
 from bs4 import BeautifulSoup
 from paho.mqtt import publish
+import time
 import paho.mqtt.client as mqtt
+
 
 def cria_audio(comando):
     
@@ -12,7 +14,19 @@ def cria_audio(comando):
     tts.save('./audios/comando.mp3')
     playsound('./audios/comando.mp3')
     
+def on_message(client, userdata, message):
+    
+    time.sleep(1)
+    print("received message =", str(message.payload.decode("utf-8")))
+    
+    
 palavra_chave = 'rossi'
+client = mqtt.Client()
+client.connect('broker.mqttdashboard.com', 1883)
+client.subscribe('rossi/temp', 2)
+client.on_message = on_message
+client.loop_start() #start loop to process received messages
+
 
 def monitora_audio():
     
@@ -41,6 +55,10 @@ def executa_comandos(trigger):
         ultimas_noticias()
     elif 'tempo' in trigger:
         previsao_tempo()
+    elif 'ligar' in trigger or 'ligue' in trigger:
+        client.publish('rossi/led', 'L')
+    elif 'desativar' in trigger or 'desative' in trigger:
+        client.publish('rossi/led', 'D')
     else:
         #playsound('./audios/')
         print('to afim nn')       
@@ -56,16 +74,21 @@ def ultimas_noticias():
         cria_audio(manchete)
         break
  
+def temperatura():
+    pass
+    # client.on_message = 
+    # temp = client.subscribe('rossi/temp', 2)
+    # print(temp)
+   
+
+
 
 def previsao_tempo():
     pass        
 
-
-def publica_mqtt():
-    mqttc = mqtt.Client()
-    mqttc.connect("iot.eclipse.org", 1883)
-    mqttc.publish("rossi/status", '1')
-    mqttc.loop(2)
+def cria_audio2(comando):
     
-    # publish.single(topic, payload=payload, qos=1, retain=True, hostname='85dd1517ad9c4248a66685c3f8fe2b51.s1.eu.hivemq.cloud', 
-    #                port=8883, client_id='rossi', auth={'username': 'rossi', 'password': 'Rossi123'})
+    tts = gTTS(comando, lang='pt-br')
+    tts.save('./audios/javou.mp3')
+    playsound('./audios/javou.mp3')
+    
